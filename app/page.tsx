@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Mail, Github, X, Server, Database, Cpu, Cloud, GitBranch } from 'lucide-react';
+import { Mail, Github, X, Server, Database, Cpu, Cloud, GitBranch, Film, Clock, ListChecks, Wrench } from 'lucide-react';
 
 type StarDetail = {
   situation: string;
@@ -16,12 +16,20 @@ type RepoLink = {
   url: string;
 };
 
+type ProjectMedia = {
+  type: 'video' | 'gif' | 'image';
+  src: string;
+};
+
 type Project = {
   title: string;
   category: string;
+  period: string;
   description: string;
   stack: string[];
+  features: string[];
   links: RepoLink[];
+  media?: ProjectMedia;
   star: StarDetail;
 };
 
@@ -65,9 +73,16 @@ export default function Home() {
     {
       title: "편의점 행사 통합 대시보드",
       category: "Data Dashboard",
+      period: "2026.02.23 ~ 2026.02.27",
       description:
         "CU, GS25, 7-Eleven, emart24의 행사 상품 데이터를 수집·정제하여 가격과 혜택을 비교하고, 예산에 맞는 상품 조합을 추천하는 Streamlit 기반 대시보드입니다. 6인 팀 프로젝트로 진행했습니다.",
       stack: ["Python", "Streamlit", "Pandas", "BeautifulSoup4"],
+      features: [
+        "브랜드별 행사 상품 크롤링 및 공통 스키마(brand/name/price/event/category) 통합",
+        "예산 입력 시 실제 구매 가능한 상품 조합을 자동 추천하는 꿀조합 생성기",
+        "브랜드별 행사 규모·가격 분포 비교 시각화",
+        "확률 기반 잭팟(슬롯머신) 이벤트 및 장바구니 연동",
+      ],
       links: [
         { label: "GitHub", url: "https://github.com/hongjiho5148/python_conv_project" },
       ],
@@ -85,9 +100,16 @@ export default function Home() {
     {
       title: "MATE - 팀 프로젝트 매칭 플랫폼",
       category: "Full Stack",
+      period: "2026.03.30 ~ 2026.04.08",
       description:
         "기술 스택과 포지션 기반으로 팀원을 모집·지원하고, 프로젝트별 게시판에서 소통할 수 있는 협업 플랫폼입니다. 백엔드 3명, 프론트엔드 2명, 풀스택 1명으로 구성된 6인 팀 프로젝트에서 백엔드를 담당했습니다.",
       stack: ["Java 17", "Spring Boot", "Spring Security", "JWT", "JPA", "MariaDB"],
+      features: [
+        "기술 스택·포지션 기반 모집글 등록 및 카테고리/키워드 필터링 조회",
+        "지원서 제출부터 승인/거절, 프로젝트 멤버 관리까지 이어지는 지원 플로우",
+        "내 모집글·참여 프로젝트·신청 현황을 한 번에 보는 마이페이지",
+        "프로젝트별 게시판·댓글, 회원 탈퇴 등 삭제 데이터를 위한 소프트 삭제 정책",
+      ],
       links: [
         { label: "Backend", url: "https://github.com/hongjiho5148/miniproject2-backend" },
         { label: "Frontend", url: "https://github.com/hongjiho5148/miniproject2-front" },
@@ -106,9 +128,16 @@ export default function Home() {
     {
       title: "SafePay-Vault",
       category: "Full Stack / Infra",
+      period: "2026.05.07 ~ 2026.05.18",
       description:
         "보안 격리 기반 가상계좌 결제 시스템으로, 가상계좌 발급부터 입금 검증, 판매자 정산 대시보드, 관리자 보안 모니터링까지 연결한 결제 서비스입니다. 5인 팀에서 사용자·판매자·관리자 대시보드를 담당했습니다.",
       stack: ["Java 17", "Spring Boot", "Redis", "MySQL", "React", "AWS", "Terraform"],
+      features: [
+        "가상계좌 발급 → 입금대기 → 판매자 승인 → 만료의 전체 결제 상태 전이 API",
+        "실제 DB를 건드리지 않고 계좌·금액을 검증하는 입금 시뮬레이터",
+        "판매자 매출·주문 수·상품 순위를 보여주는 정산 대시보드",
+        "관리자 시스템 현황, 보안 위반 로그, 이상 거래 알림 모니터링",
+      ],
       links: [
         { label: "Backend", url: "https://github.com/hongjiho5148/miniproject3" },
       ],
@@ -121,6 +150,34 @@ export default function Home() {
           "PaymentController에 가상계좌 발급(/issue), 입금 완료 보고(/report-deposit), 판매자 승인(/approve), 만료 처리(/expire) API를 구현하고, 판매자별 결제 목록 조회와 승인 흐름을 연결했습니다. 입금 시뮬레이터(SimulatorController → checkSimulationLogic)에서는 실제 DB 변경 없이 요청자 이메일이 계좌 소유자와 일치하는지, 계좌 상태가 ACTIVE인지, 요청 금액이 주문 금액과 일치하는지를 순서대로 검증해 SUCCESS/FAIL 케이스를 나눠 응답하도록 만들었고, 이메일이 다른 경우는 403으로 별도 처리했습니다. 관리자 대시보드에서는 전체 시스템 현황과 계정 조회, 보안 감사 API 연동을 담당했습니다.",
         result:
           "결제 상태 전이(발급→입금대기→승인→만료)와 검증 로직을 분리해, 실제 결제를 트리거하지 않고도 성공/실패/지연 케이스를 시뮬레이터로 테스트할 수 있는 구조를 만들었습니다. 이를 통해 팀 전체가 계좌번호 마스킹, Soft Delete 등 보안 요구사항을 만족하는 결제 흐름을 하나의 서비스로 완성했습니다.",
+      },
+    },
+    {
+      title: "ARGUS × Onde - AI 기반 웹 취약점 자동 진단",
+      category: "Security",
+      period: "2024.06.09 ~ 2024.06.19",
+      description:
+        "AI 기반 웹 취약점 자동 진단 플랫폼 ARGUS와, 그 진단 대상으로 직접 구축한 항공·숙박·렌터카 통합 예약 서비스 Onde를 함께 진행한 프로젝트입니다. 수동 진단과 ARGUS 자동 진단 결과를 비교하며 자동화 도구의 실효성을 검증했습니다.",
+      stack: ["Python", "FastAPI", "OWASP ZAP", "Selenium", "React", "Spring Boot", "MariaDB"],
+      features: [
+        "XSS/CSRF 자동 진단(1-1) — 파라미터 퍼징, CSRF 토큰·SameSite 쿠키 검증, 위험 요청 스킵 안전장치",
+        "공격 재현 스크린샷 캡처 엔진 — Selenium 기반으로 취약점 증적 화면 확보",
+        "일반계정 권한 상승 자동 진단(4-5) — 수직 권한 상승, IDOR(수평 권한 상승), Mass Assignment 3종 검사",
+        "진단 대상 서비스 Onde — 항공권/숙소/렌터카 예약, 결제·정산, 관리자 백오피스를 갖춘 실사용 수준 웹 서비스",
+      ],
+      links: [
+        { label: "ARGUS", url: "https://github.com/UR-ARGUS" },
+        { label: "Onde", url: "https://github.com/UR-VULN" },
+      ],
+      star: {
+        situation:
+          "AI 기반 자동 취약점 진단 도구가 실제로 신뢰할 만한지 검증하려면 단순한 예제 앱이 아니라 실제 서비스 수준의 복잡도를 가진 타겟이 필요했습니다. 그래서 항공·숙박·렌터카를 아우르는 여행 예약 플랫폼 Onde를 직접 구축한 뒤, 이를 대상으로 사람이 직접 진단하는 방식과 ARGUS의 자동 진단 방식을 나란히 검증하는 프로젝트를 진행했습니다.",
+        task:
+          "ARGUS의 진단 모듈 중 1-1(XSS/CSRF)과 4-5(일반계정 권한 상승) 모듈을 엔진 구현부터 프론트 연동까지 담당했고, 취약점이 실제로 재현되는지 증적을 남기는 스크린샷 캡처 엔진도 함께 개발했습니다.",
+        action:
+          "1-1 모듈에서는 파라미터를 하나씩 변조해 반응을 관찰하는 방식으로 Reflected/Stored XSS를 탐지하고, Origin/Referer 검증·CSRF 토큰·SameSite 쿠키 설정을 확인해 CSRF 위험을 판정했습니다. DELETE나 승인/반려 같은 상태 변경 요청은 스캔 대상에서 제외하는 안전장치를 넣었고, Selenium 기반 캡처 엔진으로 실제 공격이 재현되는 화면을 스크린샷으로 남겨 리포트에 첨부했습니다. 4-5 모듈은 테스트 계정 두 개(A/B)를 이용해 수직 권한 상승(일반 계정 토큰으로 관리자 API 직접 호출), 수평 권한 상승/IDOR(B 소유 자원 id를 A 토큰으로 접근), Mass Assignment(role 파라미터 주입 후 응답 반영 여부 확인) 3단계를 실제 HTTP 요청으로 검증하도록 설계했습니다. 개발 중 IDOR 판정 로직을 응답 스키마 사전 비교 방식에서, 사전 판단 없이 일단 요청해본 뒤 상대방 정보가 응답에 새로 나타났는지만으로 판정하는 방식으로 전면 리팩터링했고, 토큰 인증만 지원하던 구조를 헤더 기반으로 일반화해 쿠키 세션 인증도 함께 지원하도록 확장했습니다.",
+        result:
+          "두 진단 모듈 모두 오탐을 줄이는 안전장치(공개 자원 필터링, 응답 반영 여부 재확인, 수동 검증 안내)를 갖춘 채로 ARGUS 플랫폼에 통합했고, 직접 구축한 Onde 서비스에 실제 적용해 자동 진단 결과와 수동 진단 결과를 비교 검증했습니다. 이 과정에서 자동화 도구가 어디까지 확신할 수 있고 어디서부터 사람의 수동 확인이 필요한지 기준을 세울 수 있었습니다.",
       },
     },
   ];
@@ -222,17 +279,34 @@ export default function Home() {
                 key={project.title}
                 onClick={() => setActiveProject(project)}
               >
-                <div className="project-header">
+                <div className="project-media">
+                  {project.media ? (
+                    project.media.type === 'video' ? (
+                      <video
+                        src={project.media.src}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <img src={project.media.src} alt={`${project.title} 미리보기`} />
+                    )
+                  ) : (
+                    <div className="project-media-placeholder">
+                      <Film size={26} />
+                      <span>미리보기 준비 중</span>
+                    </div>
+                  )}
+                </div>
+                <div className="project-card-body">
+                  <div className="project-card-meta">
+                    <span className="project-category">{project.category}</span>
+                    <span className="project-period"><Clock size={12} /> {project.period}</span>
+                  </div>
                   <h3>{project.title}</h3>
-                  <span className="project-category">{project.category}</span>
+                  <span className="project-more">STAR 상세 보기 →</span>
                 </div>
-                <p className="project-desc">{project.description}</p>
-                <div className="project-stack">
-                  {project.stack.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-                <span className="project-more">STAR 상세 보기 →</span>
               </button>
             ))}
           </div>
@@ -258,16 +332,32 @@ export default function Home() {
               <X size={20} />
             </button>
 
-            <span className="project-category">{activeProject.category}</span>
+            <div className="modal-meta">
+              <span className="project-category">{activeProject.category}</span>
+              <span className="project-period"><Clock size={12} /> {activeProject.period}</span>
+            </div>
             <h2 className="modal-title">{activeProject.title}</h2>
             <p className="modal-desc">{activeProject.description}</p>
 
-            <div className="modal-stack">
-              {activeProject.stack.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
+            <div className="modal-section">
+              <h3 className="modal-section-title"><ListChecks size={16} /> 주요 기능</h3>
+              <ul className="modal-feature-list">
+                {activeProject.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
             </div>
 
+            <div className="modal-section">
+              <h3 className="modal-section-title"><Wrench size={16} /> 주요 기술</h3>
+              <div className="modal-stack">
+                {activeProject.stack.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </div>
+
+            <h3 className="modal-section-title star-section-title">STAR 회고</h3>
             <div className="star-list">
               {[
                 { label: "S", title: "Situation", text: activeProject.star.situation },
