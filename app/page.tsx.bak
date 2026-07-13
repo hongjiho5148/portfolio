@@ -1,0 +1,178 @@
+import {
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  Code2,
+  Github,
+  Layers3,
+  Mail,
+  Sparkles,
+} from "lucide-react";
+
+const navItems = [
+  { label: "Home", href: "#home" },
+  { label: "Introduce", href: "#introduce" },
+  { label: "Skill", href: "#skill" },
+  { label: "Project", href: "#project" },
+];
+
+const skills = [
+  { name: "React", text: "컴포넌트 중심 UI 설계와 상태 흐름 구성" },
+  { name: "Next.js", text: "App Router, SEO, 배포 친화적인 웹 구조" },
+  { name: "TypeScript", text: "명확한 타입 기반으로 안정적인 개발" },
+  { name: "Node.js", text: "API, 서버 런타임, 개발 도구 생태계 이해" },
+  { name: "UI Design", text: "읽기 쉬운 레이아웃과 일관된 인터랙션" },
+  { name: "Git", text: "작업 단위 관리와 협업 중심 버전 관리" },
+];
+
+const projects = [
+  {
+    title: "Portfolio System",
+    category: "Personal Website",
+    description:
+      "나를 소개하는 정보를 빠르게 탐색할 수 있도록 설계한 포트폴리오 웹사이트입니다.",
+    stack: ["Next.js", "React", "TypeScript"],
+  },
+  {
+    title: "Dashboard Concept",
+    category: "Frontend UI",
+    description:
+      "데이터를 한눈에 읽을 수 있는 카드, 리스트, 상태 표시 중심의 대시보드 실험입니다.",
+    stack: ["React", "CSS", "UX"],
+  },
+  {
+    title: "Project Archive",
+    category: "Documentation",
+    description:
+      "학습과 개발 기록을 프로젝트 단위로 정리해 성장 흐름을 보여주는 아카이브입니다.",
+    stack: ["Markdown", "Git", "Design"],
+  },
+];
+
+export default function Home() {
+  return (
+    <main>
+      <header className="site-header">
+        <a className="brand" href="#home" aria-label="Portfolio home">
+          <span>Portfolio</span>
+        </a>
+        <nav aria-label="Main navigation">
+          {navItems.map((item) => (
+            <a key={item.href} href={item.href}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <section id="home" className="hero section">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <Sparkles size={16} />
+            Frontend Portfolio
+          </p>
+          <h1>사용자가 편하게 머무는 웹을 만드는 개발자</h1>
+          <p className="hero-text">
+            React와 Next.js를 기반으로 명확한 구조, 빠른 경험, 정돈된 인터페이스를
+            설계합니다. 작게 시작해도 완성도 있게 다듬는 것을 좋아합니다.
+          </p>
+          <div className="hero-actions">
+            <a className="primary-button" href="#project">
+              프로젝트 보기
+              <ArrowRight size={18} />
+            </a>
+            <a className="icon-button" href="mailto:hello@example.com" aria-label="Send email">
+              <Mail size={20} />
+            </a>
+            <a className="icon-button" href="https://github.com" aria-label="Open GitHub">
+              <Github size={20} />
+            </a>
+          </div>
+        </div>
+
+        <div className="hero-panel" aria-label="Portfolio summary">
+          <div className="panel-top">
+            <span className="status-dot" />
+            Available for collaboration
+          </div>
+          <div className="metric">
+            <strong>4</strong>
+            <span>Core Sections</span>
+          </div>
+          <div className="mini-grid">
+            <span>Home</span>
+            <span>Introduce</span>
+            <span>Skill</span>
+            <span>Project</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="introduce" className="section split-section">
+        <div>
+          <p className="section-label">Introduce</p>
+          <h2>문제를 단순하게 정리하고, 화면은 더 직관적으로 만듭니다.</h2>
+        </div>
+        <div className="intro-card">
+          <BadgeCheck className="card-icon" size={24} />
+          <p>
+            저는 기능을 만드는 것만큼 사용자가 흐름을 이해하는 방식을 중요하게
+            생각합니다. 정보의 우선순위를 세우고, 필요한 동작을 예측 가능하게
+            배치하며, 작은 디테일로 신뢰감을 만드는 개발을 지향합니다.
+          </p>
+        </div>
+      </section>
+
+      <section id="skill" className="section">
+        <div className="section-heading">
+          <p className="section-label">Skill</p>
+          <h2>기술은 빠르게 배우고, 기준은 차분하게 세웁니다.</h2>
+        </div>
+        <div className="skill-grid">
+          {skills.map((skill) => (
+            <article className="skill-card" key={skill.name}>
+              <Code2 size={22} />
+              <h3>{skill.name}</h3>
+              <p>{skill.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="project" className="section">
+        <div className="section-heading">
+          <p className="section-label">Project</p>
+          <h2>작업물은 결과뿐 아니라 생각의 흐름까지 보여줍니다.</h2>
+        </div>
+        <div className="project-list">
+          {projects.map((project, index) => (
+            <article className="project-card" key={project.title}>
+              <div className="project-index">{String(index + 1).padStart(2, "0")}</div>
+              <div>
+                <p>{project.category}</p>
+                <h3>{project.title}</h3>
+                <span>{project.description}</span>
+              </div>
+              <div className="stack-row">
+                {project.stack.map((item) => (
+                  <em key={item}>{item}</em>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <footer className="footer">
+        <div>
+          <Layers3 size={20} />
+          Built with Next.js, React, TypeScript
+        </div>
+        <a href="mailto:hello@example.com">
+          Contact
+          <BriefcaseBusiness size={18} />
+        </a>
+      </footer>
+    </main>
+  );
+}
