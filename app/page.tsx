@@ -1,8 +1,7 @@
-"use client";
-
-import { useState } from 'react';
 import Image from 'next/image';
-import { Mail, Github, X, Server, Database, Cpu, Cloud, GitBranch, Film, Clock, ListChecks, Wrench } from 'lucide-react';
+import Link from 'next/link';
+import { Mail, Github, Server, Database, Cpu, Cloud, GitBranch, Film, Clock } from 'lucide-react';
+import CursorGlow from './CursorGlow';
 
 type ContributionDetail = {
   title: string;
@@ -21,6 +20,7 @@ type ProjectMedia = {
 };
 
 type Project = {
+  slug: string;
   title: string;
   category: string;
   period: string;
@@ -33,8 +33,6 @@ type Project = {
 };
 
 export default function Home() {
-  const [activeProject, setActiveProject] = useState<Project | null>(null);
-
   const skillGroups = [
     {
       title: "Backend",
@@ -70,6 +68,7 @@ export default function Home() {
 
   const projects: Project[] = [
     {
+      slug: "convenience-dashboard",
       title: "편의점 행사 통합 대시보드",
       category: "Data Dashboard",
       period: "2026.02.23 ~ 2026.02.27",
@@ -85,6 +84,10 @@ export default function Home() {
       links: [
         { label: "GitHub", url: "https://github.com/hongjiho5148/python_conv_project" },
       ],
+      media: {
+        type: "image",
+        src: "/convenience-dashboard.png",
+      },
       contributions: [
         {
           title: "CU 행사 상품 수집 파이프라인",
@@ -105,6 +108,7 @@ export default function Home() {
       ],
     },
     {
+      slug: "mate-platform",
       title: "MATE - 팀 프로젝트 매칭 플랫폼",
       category: "Full Stack",
       period: "2026.03.30 ~ 2026.04.08",
@@ -121,6 +125,10 @@ export default function Home() {
         { label: "Backend", url: "https://github.com/hongjiho5148/miniproject2-backend" },
         { label: "Frontend", url: "https://github.com/hongjiho5148/miniproject2-front" },
       ],
+      media: {
+        type: "image",
+        src: "/mate-platform.png",
+      },
       contributions: [
         {
           title: "유저·마이페이지 API",
@@ -142,6 +150,7 @@ export default function Home() {
       ],
     },
     {
+      slug: "safepay-vault",
       title: "SafePay-Vault",
       category: "Full Stack / Infra",
       period: "2026.05.07 ~ 2026.05.18",
@@ -157,6 +166,10 @@ export default function Home() {
       links: [
         { label: "Backend", url: "https://github.com/hongjiho5148/miniproject3" },
       ],
+      media: {
+        type: "image",
+        src: "/safepay-vault.png",
+      },
       contributions: [
         {
           title: "가상계좌 결제 API",
@@ -185,15 +198,16 @@ export default function Home() {
       ],
     },
     {
+      slug: "argus-onde",
       title: "ARGUS × Onde - AI 기반 웹 취약점 자동 진단",
       category: "Security",
       period: "2024.06.09 ~ 2024.06.19",
       description:
         "AI 기반 웹 취약점 자동 진단 플랫폼 ARGUS와, 그 진단 대상으로 직접 구축한 항공·숙박·렌터카 통합 예약 서비스 Onde를 함께 진행한 프로젝트입니다. 수동 진단과 ARGUS 자동 진단 결과를 비교하며 자동화 도구의 실효성을 검증했습니다.",
-      stack: ["Python", "FastAPI", "OWASP ZAP", "Selenium", "React", "Spring Boot", "MariaDB"],
+      stack: ["Python", "FastAPI", "OWASP ZAP", "Playwright", "React", "Spring Boot", "MariaDB"],
       features: [
         "XSS/CSRF 자동 진단(1-1) — 파라미터 퍼징, CSRF 토큰·SameSite 쿠키 검증, 위험 요청 스킵 안전장치",
-        "공격 재현 스크린샷 캡처 엔진 — Selenium 기반으로 취약점 증적 화면 확보",
+        "공격 재현 스크린샷 캡처 엔진 — Playwright 기반으로 취약점 증적 화면 확보",
         "일반계정 권한 상승 자동 진단(4-5) — 수직 권한 상승, IDOR(수평 권한 상승), Mass Assignment 3종 검사",
         "진단 대상 서비스 Onde — 항공권/숙소/렌터카 예약, 결제·정산, 관리자 백오피스를 갖춘 실사용 수준 웹 서비스",
       ],
@@ -201,6 +215,10 @@ export default function Home() {
         { label: "ARGUS", url: "https://github.com/UR-ARGUS" },
         { label: "Onde", url: "https://github.com/UR-VULN" },
       ],
+      media: {
+        type: "image",
+        src: "/argus-onde.png",
+      },
       contributions: [
         {
           title: "XSS/CSRF 자동 진단 모듈",
@@ -221,7 +239,7 @@ export default function Home() {
         },
         {
           title: "취약점 증적 캡처",
-          tech: ["Selenium", "Report Automation"],
+          tech: ["Playwright", "Report Automation"],
           points: [
             "공격 재현 화면을 스크린샷으로 남겨 리포트에 첨부하는 캡처 엔진을 구현했습니다.",
             "응답 반영 여부 재확인 로직을 넣어 자동 진단의 오탐을 줄였습니다.",
@@ -233,6 +251,7 @@ export default function Home() {
 
   return (
     <>
+      <CursorGlow />
       <header className="site-header">
         <div className="header-container">
           <a href="#" className="brand">Hong Jiho</a>
@@ -247,30 +266,29 @@ export default function Home() {
       <main>
         {/* Hero Section */}
         <section className="hero">
-          <h1>안녕하세요,<br />백엔드 개발자 홍지호입니다.</h1>
-          <p>
-            주로 Node.js와 Spring Boot를 사용합니다. 코드 한 줄보다 그 코드가
-            서비스와 사용자에게 미치는 영향을 더 중요하게 생각하며 개발하고 있습니다.
-          </p>
+          <div className="hero-content">
+            <span className="hero-kicker">JIHO PORTFOLIO</span>
+            <h1>안녕하세요,<br />개발자 홍지호입니다.</h1>
+          </div>
         </section>
 
         {/* Introduce Section */}
         <section id="introduce" className="section">
           <div className="section-header">
             <span className="section-label">Introduce</span>
-            <h2 className="section-title">기본기를 중요하게 생각합니다.</h2>
+            <h2 className="section-title">협업을 중요하게 생각합니다.</h2>
           </div>
 
           <div className="profile-container">
             <div className="profile-top">
               <div className="profile-image-wrapper">
-                <Image src="/profile.jpg" alt="Profile" width={180} height={180} className="profile-image" />
+                <Image src="/profile.png" alt="Profile" width={180} height={180} className="profile-image" />
               </div>
               <div className="profile-info">
                 <div className="profile-name">
                   <h3>홍지호 <span>(Jiho Hong)</span></h3>
                 </div>
-                <p className="profile-title">from Backend Developer to Product Engineer</p>
+                <p className="profile-title">from Developer to Product Engineer</p>
 
                 <div className="profile-links">
                   <a href="mailto:wlgh5148@naver.com"><Mail size={16} /> wlgh5148@naver.com</a>
@@ -282,9 +300,7 @@ export default function Home() {
 
           <div className="intro-content mt-8">
             <p>
-              코드를 만드는 것도 중요하지만, 왜 이렇게 작성했는지 동료들에게 설명할 수 있는 코드를 지향합니다.
-              서비스의 트래픽이나 데이터가 늘어났을 때 발생할 수 있는 문제들을 미리 예상하고 대비하는 것을 좋아하며,
-              유지보수하기 좋은 구조를 만드는 것에 관심이 많습니다.
+              팀원들과의 원활한 소통과 화합을 바탕으로 함께 성장하는 개발을 지향합니다.
             </p>
           </div>
         </section>
@@ -297,12 +313,9 @@ export default function Home() {
           </div>
           <div className="skill-grid">
             {skillGroups.map((group) => {
-              const Icon = group.icon;
               return (
                 <div className="skill-card" key={group.title}>
-                  <div className="skill-icon"><Icon size={22} /></div>
                   <h3>{group.title}</h3>
-                  <p>{group.text}</p>
                   <div className="skill-tags">
                     {group.items.map((item) => (
                       <span key={item}>{item}</span>
@@ -322,11 +335,11 @@ export default function Home() {
           </div>
           <div className="project-list">
             {projects.map((project) => (
-              <button
-                type="button"
-                className="project-card"
+              <Link
+                href={`/projects/${project.slug}`}
+                prefetch={false}
+                className={`project-card project-card-${project.slug}`}
                 key={project.title}
-                onClick={() => setActiveProject(project)}
               >
                 <div className="project-media">
                   {project.media ? (
@@ -354,9 +367,9 @@ export default function Home() {
                     <span className="project-period"><Clock size={12} /> {project.period}</span>
                   </div>
                   <h3>{project.title}</h3>
-                  <span className="project-more">내 역할 보기 →</span>
+                  <span className="project-more">상세 보기 →</span>
                 </div>
-              </button>
+              </Link>
             ))}
           </div>
         </section>
@@ -366,83 +379,6 @@ export default function Home() {
         <p>© {new Date().getFullYear()} Hong Jiho. Backend Developer Portfolio</p>
       </footer>
 
-      {activeProject && (
-        <div
-          className="modal-overlay"
-          onClick={() => setActiveProject(null)}
-        >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setActiveProject(null)}
-              aria-label="닫기"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="modal-meta">
-              <span className="project-category">{activeProject.category}</span>
-              <span className="project-period"><Clock size={12} /> {activeProject.period}</span>
-            </div>
-            <h2 className="modal-title">{activeProject.title}</h2>
-            <p className="modal-desc">{activeProject.description}</p>
-
-            <div className="modal-section">
-              <h3 className="modal-section-title"><ListChecks size={16} /> 주요 기능</h3>
-              <ul className="modal-feature-list">
-                {activeProject.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="modal-section">
-              <h3 className="modal-section-title"><Wrench size={16} /> 주요 기술</h3>
-              <div className="modal-stack">
-                {activeProject.stack.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </div>
-
-            <h3 className="modal-section-title contribution-section-title">내가 맡은 역할</h3>
-            <div className="contribution-list">
-              {activeProject.contributions.map((contribution) => (
-                <div className="contribution-panel" key={contribution.title}>
-                  <div className="contribution-head">
-                    <h4>{contribution.title}</h4>
-                    <div className="contribution-tech">
-                      {contribution.tech.map((item) => (
-                        <span key={item}>{item}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <ul className="contribution-points">
-                    {contribution.points.map((point) => (
-                      <li key={point}>{point}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <div className="modal-links">
-              {activeProject.links.map((link) => (
-                <a
-                  key={link.url}
-                  className="modal-github-link"
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Github size={16} /> {link.label} 레포지토리 보기
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
