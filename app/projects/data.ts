@@ -191,14 +191,14 @@ export const projects: Project[] = [
     description:
       "AI 기반 웹 취약점 자동 진단 플랫폼 ARGUS와, 그 진단 대상으로 직접 구축한 항공·숙박·렌터카 통합 예약 서비스 Onde를 함께 진행한 프로젝트입니다. 수동 진단과 ARGUS 자동 진단 결과를 비교하며 자동화 도구의 실효성을 검증했습니다.",
     summary:
-      "실사용 서비스 수준의 예약 플랫폼을 진단 대상으로 삼아 XSS/CSRF, 권한 상승, IDOR, Mass Assignment 자동 진단 모듈의 실효성을 검증했습니다.",
+      "예약 플랫폼 Onde를 진단 대상으로 구축하고, ARGUS의 취약점 탐지부터 증적 캡처·PDF 리포트 생성까지 이어지는 자동 진단 흐름을 검증했습니다.",
     stack: ["Python", "FastAPI", "OWASP ZAP", "Playwright", "React", "Spring Boot", "MariaDB"],
     features: [
       "ARGUS: 웹 애플리케이션을 대상으로 취약점 진단을 실행하고 결과를 리포트로 확인하는 자동 진단 플랫폼",
-      "ARGUS: XSS, CSRF, 권한 상승, IDOR, Mass Assignment 등 주요 웹 취약점 진단 모듈 제공",
+      "ARGUS: 입력값 변조, 요청 위조, 권한 검증, 파라미터 주입 등 다양한 공격 시나리오 기반 자동 진단 모듈 제공",
       "ARGUS: 진단 결과, 위험도, 증적 스크린샷을 함께 제공하는 리포트 화면",
       "Onde: 항공권, 숙소, 렌터카 예약과 결제·정산 흐름을 갖춘 진단 대상 여행 예약 서비스",
-      "Onde: 사용자 예약 화면과 관리자 백오피스를 포함한 실사용 수준의 테스트 타겟",
+      "Onde: 사용자 예약 화면과 관리자 백오피스를 포함한 진단용 테스트 타겟",
     ],
     links: [
       { label: "ARGUS", url: "https://github.com/UR-ARGUS" },
@@ -221,7 +221,6 @@ export const projects: Project[] = [
         points: [
           "상태 코드와 응답 본문을 함께 확인해, 에러를 200 OK로 반환하는 서버에서도 권한 상승 오탐을 줄였습니다.",
           "A/B 계정의 고유 자원만 IDOR 테스트 대상으로 남기고, 실제 상대방 식별 정보가 노출되는지 기준으로 판정 로직을 개선했습니다.",
-          "Mass Assignment는 주입한 값이 응답 본문에 실제 반영됐는지 확인하고, Bearer·쿠키 세션 인증을 자동 판별하도록 일반화했습니다.",
         ],
       },
       {
@@ -229,8 +228,7 @@ export const projects: Project[] = [
         tech: ["Playwright", "Browser Automation"],
         points: [
           "Playwright로 실제 브라우저를 조작해 URL 방문, 요소 클릭, API 응답 기반 탐색 순서로 취약점 증적 화면을 확보했습니다.",
-          "SPA에서 DOM에 식별자가 바로 드러나지 않는 경우, 목록 API 응답을 활용해 관련 화면을 찾아가는 방식으로 캡처 성공률을 높였습니다.",
-          "캡처 진행 상태 동기화 문제와 로그 증가로 인한 프로세스 중단 문제를 발견해, 상태 처리와 로그 기록 방식을 개선했습니다.",
+          "SPA에서 DOM에 식별자가 바로 드러나지 않는 경우를 대비해, 목록 API 응답에서 대상 레코드의 텍스트를 찾아 클릭하는 방식을 추가로 설계했습니다.",
         ],
       },
       {
