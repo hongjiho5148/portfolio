@@ -1,9 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Github, Server, Database, Cpu, Cloud, GitBranch, Film, Clock } from 'lucide-react';
+import { Mail, Github, Server, Database, Cpu, GitBranch, Film, Clock } from 'lucide-react';
 import CursorGlow from './CursorGlow';
-
-import { projects } from "./projects/data";
+import { projects } from './projects/data';
 
 export default function Home() {
   const skillGroups = [
@@ -26,19 +25,12 @@ export default function Home() {
       items: ["Python", "Pandas", "BeautifulSoup4", "Streamlit"],
     },
     {
-      title: "Cloud & Infra",
-      icon: Cloud,
-      text: "클라우드 배포 환경과 서드파티 스토리지 연동 경험",
-      items: ["AWS", "Terraform", "Cloudinary"],
-    },
-    {
       title: "Collaboration",
       icon: GitBranch,
       text: "feature 브랜치와 PR 기반 협업, 팀 단위 REST API 컨벤션 정립",
       items: ["Git", "GitHub", "REST API 설계", "Code Review"],
     },
   ];
-
 
   return (
     <>

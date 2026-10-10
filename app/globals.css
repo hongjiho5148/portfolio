@@ -779,6 +779,7 @@ main {
   .project-detail-hero p { font-size: 1rem; }
   .project-detail-media { margin: 26px 0 34px; border-radius: 10px; }
   .detail-contribution-card { padding: 18px 16px; }
+  .detail-contribution-list { grid-template-columns: 1fr; }
   .skill-card {
     grid-template-columns: 1fr;
     gap: 8px;
