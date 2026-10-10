@@ -907,3 +907,64 @@ main {
     display: none;
   }
 }
+
+/* troubleshooting */
+.troubleshooting-list {
+  display: grid;
+  gap: 16px;
+}
+.troubleshooting-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.78);
+}
+.troubleshooting-head {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.troubleshooting-tag {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+.troubleshooting-head h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.troubleshooting-rows {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.troubleshooting-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 14px;
+}
+.troubleshooting-row dt {
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.68;
+}
+.troubleshooting-row dd {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.93rem;
+  font-weight: 500;
+  line-height: 1.68;
+}
+@media (max-width: 640px) {
+  .troubleshooting-card { padding: 18px 16px; }
+  .troubleshooting-row { grid-template-columns: 1fr; gap: 2px; }
+}

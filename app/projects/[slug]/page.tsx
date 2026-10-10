@@ -111,6 +111,30 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         </div>
       </section>
 
+      {project.troubleshooting && project.troubleshooting.length > 0 && (
+        <section className="project-detail-section">
+          <h2>트러블슈팅</h2>
+          <div className="troubleshooting-list">
+            {project.troubleshooting.map((item) => (
+              <article className="troubleshooting-card" key={item.title}>
+                <div className="troubleshooting-head">
+                  <span className="troubleshooting-tag">{item.tag}</span>
+                  <h3>{item.title}</h3>
+                </div>
+                <dl className="troubleshooting-rows">
+                  {item.rows.map((row) => (
+                    <div className="troubleshooting-row" key={row.label}>
+                      <dt>{row.label}</dt>
+                      <dd>{row.text}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="project-detail-section">
         <h2>관련 링크</h2>
         <div className="detail-links">
