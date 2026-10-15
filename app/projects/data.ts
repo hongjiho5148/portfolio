@@ -19,10 +19,33 @@ export type TroubleshootingRow = {
   text: string;
 };
 
+export type FigureKey = "nginx" | "latePay" | "safepayLock" | "safepayN1";
+
+export type ChartItem = {
+  label: string;
+  before: number;
+  after: number;
+  beforeText: string;
+  afterText: string;
+};
+
+export type TsPoint = {
+  lead?: string;
+  text: string;
+};
+
 export type Troubleshooting = {
   title: string;
   tag: string;
-  rows: TroubleshootingRow[];
+  featured?: boolean;
+  headline?: { label: string; before: string; after: string };
+  figure?: FigureKey;
+  chart?: { title: string; items: ChartItem[] };
+  problem?: TsPoint[];
+  solution?: TsPoint[];
+  result?: TsPoint[];
+  conditions?: string;
+  rows?: TroubleshootingRow[];
 };
 
 export type Project = {
@@ -229,6 +252,8 @@ export const projects: Project[] = [
       {
         title: "팀원 강제 퇴출이 DB에 반영되지 않던 문제",
         tag: "JPA 영속성 컨텍스트",
+        featured: true,
+        headline: { label: "강제 퇴출 처리", before: "DB 미반영", after: "한 트랜잭션으로 반영" },
         rows: [
           {
             label: "문제",
@@ -281,6 +306,8 @@ export const projects: Project[] = [
       {
         title: "게시글 목록 N+1 쿼리",
         tag: "JPA 성능 · 프로젝트 이후 재점검",
+        featured: true,
+        headline: { label: "게시글 목록 조회 쿼리 수", before: "4번", after: "1번" },
         rows: [
           {
             label: "문제",
@@ -382,48 +409,69 @@ export const projects: Project[] = [
     ],
     troubleshooting: [
       {
-        title: "동시 요청 경합: 낙관적 락 적용과 측정으로 확인한 효과",
+        title: "승인·취소 요청이 동시에 들어오면 둘 다 성공해 결제 상태가 어긋나는 문제 해결",
         tag: "JPA @Version · 동시성",
-        rows: [
-          {
-            label: "문제",
-            text: "결제 상태를 바꾸는 요청(승인, 취소, 만료)이 같은 결제 건에 동시에 들어오면, 상태 확인과 변경 사이의 틈을 타고 둘 다 성공해 최종 상태가 어긋날 수 있는 구조였습니다.",
-          },
-          {
-            label: "검증",
-            text: "락 유무만 다른 두 빌드에 같은 부하(50라운드)를 걸어 비교했습니다. 락이 없을 때 승인과 취소를 동시에 보내면 50라운드 중 26라운드에서 둘 다 성공하며 최종 상태가 어긋났고, 낙관적 락을 적용하자 0라운드가 됐습니다. 같은 승인이 20개 동시에 오는 경우는 락 없이도 1건만 성공했는데, payment_history의 거래 ID 유니크 제약이 이미 막고 있었기 때문입니다.",
-          },
-          {
-            label: "추가 발견",
-            text: "락이 있어도 충돌이 항상 버전 불일치 예외로 나타나지는 않았습니다. DB 데드락(CannotAcquireLockException)과 유니크 제약 위반(DataIntegrityViolationException)으로도 나타나, 동시 승인 20개 시 600건 중 270건이 500으로 응답했습니다. 세 예외를 각각 409로 매핑해 500을 0건으로 줄였습니다.",
-          },
-          {
-            label: "배운 점",
-            text: "락이 실제로 필요한 경우는 서로 다른 연산이 같은 행을 바꾸는 경합이라는 점을 수치로 확인했습니다.",
-          },
+        featured: true,
+        headline: { label: "승인·취소 동시 요청의 상태 불일치 (50라운드)", before: "26라운드", after: "0라운드" },
+        figure: "safepayLock",
+        chart: {
+          title: "락 유무 비교 (50라운드, 각 항목은 락 없음 기준)",
+          items: [
+            { label: "승인 vs 취소|둘 다 성공", before: 26, after: 0, beforeText: "26/50", afterText: "0/50" },
+            { label: "승인 vs 취소|최종 상태 불일치", before: 26, after: 0, beforeText: "26/50", afterText: "0/50" },
+            { label: "승인 vs 만료|둘 다 성공", before: 2, after: 0, beforeText: "2/50", afterText: "0/50" },
+            { label: "동시 승인 20개|500 응답", before: 270, after: 0, beforeText: "270/600", afterText: "0" },
+          ],
+        },
+        problem: [
+          { lead: "발견", text: "결제 상태 전이 API가 동시 요청에 취약할 수 있다는 점을 설계 점검에서 발견하고, 락 유무만 다른 두 빌드에 같은 부하를 주는 재현 스크립트로 확인했습니다." },
+          { lead: "원인", text: "판매자의 승인과 구매자의 취소가 같은 결제 행을 동시에 바꾸면 둘 다 성공(200)하고 최종 상태가 어긋났습니다." },
+          { lead: "해결 이유", text: "결제 상태가 어긋나면 정산과 고객 안내가 틀어지는 금전 문제입니다." },
         ],
+        solution: [
+          { lead: "@Version 낙관적 락", text: "Payment 엔티티에 JPA @Version을 적용해, 저장 시점에 버전이 다르면 늦은 요청이 실패하게 했습니다." },
+          { lead: "선택 이유", text: "같은 결제 건에 서로 다른 요청이 겹치는 일은 드물고, 겹치면 한쪽을 거절하면 되는 업무라 대기 없이 충돌을 감지하는 낙관적 락을 택했습니다." },
+          { lead: "추가 발견", text: "락 이후에도 동시 승인 20개 시나리오에서 유니크 제약 위반과 DB 데드락이 500으로 응답되어, 전역 예외 처리기에서 ConcurrencyFailureException과 DataIntegrityViolationException을 409로 매핑했습니다." },
+        ],
+        result: [
+          { text: "승인 vs 취소: 둘 다 성공과 최종 상태 불일치가 각각 26/50 → 0/50" },
+          { text: "승인 vs 만료: 둘 다 성공 2/50 → 0/50" },
+          { text: "동시 승인 20개: 500 응답 600건 중 270건 → 0건 (409로 응답)" },
+          { lead: "해석", text: "같은 승인의 중복 요청은 payment_history 유니크 제약이 이미 막고 있어, 이 케이스에서 락의 추가 효과는 측정되지 않았습니다." },
+        ],
+        conditions:
+          "로컬 PC에서 Spring Boot 단일 인스턴스 + Docker MySQL 8.0 + Docker Redis 7을 같은 머신에 띄우고, Node 스크립트로 시나리오마다 50라운드, 라운드당 동시 요청을 발사. 락 유무만 다른 두 빌드로 비교(AMD Ryzen AI 7 350 8코어/16스레드, RAM 32GB). 절대값보다 전후 비교용입니다.",
       },
       {
-        title: "캐시 도입 효과를 측정하다 발견한 N+1",
+        title: "판매자 결제 목록 조회의 N+1 쿼리 해결 (cache miss 814ms → 33ms)",
         tag: "Redis 캐시 · JPA 성능",
-        rows: [
-          {
-            label: "문제",
-            text: "판매자 결제 목록에 Redis 캐시를 적용하고 효과를 측정했더니 cache miss가 814ms로 비정상적으로 느렸습니다(결제 540건 기준).",
-          },
-          {
-            label: "원인",
-            text: "SQL 로그를 세어 보니 결제 45건 조회에 쿼리가 51개(결제 1개, 건마다 가상계좌 45개, 회원 5개) 나가고 있었습니다. @OneToOne(mappedBy)가 기본 EAGER여서 결제마다 가상계좌를 따로 조회하는 N+1이었고, 정작 이 응답에는 가상계좌가 쓰이지도 않았습니다.",
-          },
-          {
-            label: "해결",
-            text: "@EntityGraph로 회원과 가상계좌를 한 번의 조인으로 가져오게 바꿨습니다. 수정 전 45건 조회에 51개였던 쿼리가, 수정 후에는 585건을 조회해도 SELECT 1개로 줄었습니다.",
-          },
-          {
-            label: "결과",
-            text: "결제 540건 기준 miss 응답 시간이 814ms에서 33ms로(약 24배) 줄었고, 그 위에 캐시를 적용한 hit는 13ms였습니다. 처음에는 캐시만으로 50배 빨라진 것처럼 보였지만 대부분은 N+1의 영향이었다는 점까지 구분해 기록했습니다.",
-          },
+        featured: true,
+        headline: { label: "결제 목록 cache miss 응답", before: "814ms", after: "33ms" },
+        figure: "safepayN1",
+        chart: {
+          title: "응답 시간 비교 (결제 540건, 중앙값)",
+          items: [
+            { label: "cache miss|(DB 조회) ms", before: 814, after: 33, beforeText: "814ms", afterText: "33ms" },
+            { label: "cache hit ms", before: 16, after: 13, beforeText: "16ms", afterText: "13ms" },
+            { label: "miss 시 SELECT 수", before: 51, after: 1, beforeText: "51개", afterText: "1개" },
+          ],
+        },
+        problem: [
+          { lead: "발견", text: "판매자 대시보드 결제 목록에 Redis 캐시를 적용한 뒤 효과를 측정하다, cache miss가 814ms로 느린 것을 발견했습니다." },
+          { lead: "원인", text: "SQL 로그를 세어 보니 45건 조회에 SELECT가 51개였습니다. 결제마다 가상계좌(@OneToOne mappedBy, 기본 EAGER)와 회원을 따로 조회하는 N+1이었습니다." },
+          { lead: "해결 이유", text: "캐시가 비거나 무효화될 때마다 느린 경로를 타고, 캐시 수치가 이 문제를 가려 개선 효과를 잘못 읽게 됩니다." },
         ],
+        solution: [
+          { lead: "@EntityGraph", text: "조회 메서드 findAllByProduct_SellerId에 @EntityGraph(attributePaths = {\"member\", \"virtualAccount\"})를 붙여 한 번의 조인 조회로 바꿨습니다." },
+          { lead: "선택 이유", text: "캐시를 더 늘려도 miss 경로는 그대로라 원인인 쿼리 자체를 고쳤고, 쿼리 메서드를 유지한 채 어노테이션만으로 조인을 적용할 수 있어 변경 범위가 작았습니다." },
+          { lead: "구분해서 기록", text: "개선의 대부분이 캐시가 아닌 N+1 해결에서 나왔음을 단계별로 나눠 측정했습니다." },
+        ],
+        result: [
+          { text: "cache miss 814ms → 33ms (약 24배), 585건을 조회해도 SELECT 1개" },
+          { text: "그 위에 캐시를 더하면 33ms → 13ms (약 2.6배). 캐시만 보면 50배(814 → 16ms)로 보이지만 대부분은 N+1 해결의 효과입니다." },
+        ],
+        conditions:
+          "로컬 PC에서 Spring Boot 단일 인스턴스 + Docker MySQL 8.0 + Docker Redis 7을 같은 머신에 띄워 측정(AMD Ryzen AI 7 350 8코어/16스레드, RAM 32GB). 사용자 60명 × 상품 9종 = 결제 540건, 케이스당 100회 조회의 중앙값, 응답 약 160KB. 같은 머신이라 네트워크 지연은 거의 포함되지 않았고 전후 비교용입니다.",
       },
     ],
   },
@@ -431,7 +479,7 @@ export const projects: Project[] = [
     slug: "argus-onde",
     title: "ARGUS × Onde - 웹 취약점 자동 진단",
     category: "Security",
-    period: "2024.06.09 ~ 2024.06.19",
+    period: "2026.06.22 ~ 2026.07.22",
     description:
       "AI 기반 웹 취약점 자동 진단 플랫폼 ARGUS와, 그 진단 대상으로 직접 구축한 항공·숙박·렌터카 통합 예약 서비스 Onde를 함께 진행한 프로젝트입니다. 수동 진단과 ARGUS 자동 진단 결과를 비교하며 자동화 도구의 실효성을 검증했습니다.",
     summary:
@@ -494,7 +542,7 @@ export const projects: Project[] = [
     description:
       "한정 좌석에 사용자가 몰리는 상황을 가정한 선착순 공연 티켓팅 서비스입니다. 단일 모놀리스로 시작해 동시성 제어, 수평 확장, 5단계 마이크로서비스 분리까지 혼자 기획·설계·개발했고, 설계를 바꿀 때마다 k6 부하테스트로 전후를 비교했습니다. 이후 결제·환불, QR 입장권, 티켓 양도, 알림, 관리자 앱, 봇 방어로 운영 가능한 서비스로 확장했습니다.",
     summary:
-      "문제를 부하테스트로 먼저 찾고 원인을 로그로 분석해 해결한 뒤 수치로 다시 검증한 개인 프로젝트입니다. 해결이 만든 새 약점과 현재 구조의 한계까지 재측정으로 확인해 남겼습니다.",
+      "문제를 부하테스트로 먼저 찾고 원인을 로그로 분석해 해결한 뒤 수치로 다시 검증한 개인 프로젝트입니다. 해결이 새 약점을 남기지 않았는지 재측정으로 다시 확인했습니다.",
     stack: ["Java 17", "Spring Boot", "Spring Cloud Gateway", "Redis(Redisson)", "MySQL", "React", "nginx", "k6", "Docker Compose"],
     features: [
       "선착순 대기열, 5분 좌석 임시 홀드, 공연당 1인 4석 제한, 결제까지 이어지는 예매 흐름",
@@ -539,102 +587,97 @@ export const projects: Project[] = [
         points: [
           "대기와 입장을 Redis ZSET으로 관리하고, 스케일아웃 시 스윕을 분산락으로 감싸 레플리카 중 한 대만 입장을 처리하게 했습니다.",
           "k6 시나리오(로그인, 대기열, 좌석 조회, 예약, 취소 반복)로 설계 변경 전후를 비교했습니다.",
-          "동시성 로직은 실제 MySQL에 붙어 롤백하는 통합 테스트를 포함해 JUnit 115개로 검증했습니다.",
+          "동시성 로직은 실제 MySQL에 붙어 롤백하는 통합 테스트를 포함해 JUnit 150개로 검증했습니다.",
         ],
       },
     ],
     troubleshooting: [
       {
-        title: "고부하에서 실패율 24%: nginx 임시 포트 고갈",
+        title: "nginx 임시 포트 고갈로 부하테스트 요청 실패율 24%가 나오던 문제 해결",
         tag: "nginx · 부하테스트",
-        rows: [
-          {
-            label: "문제",
-            text: "k6 1000 VU 부하테스트에서 요청 실패율이 24%까지 올랐습니다. 서비스 로직 오류가 아니라 연결 단계의 실패였습니다.",
-          },
-          {
-            label: "원인",
-            text: "nginx에서 gateway로 가는 구간이 변수 proxy_pass(동적 resolver)라 업스트림 keepalive 풀을 쓰지 못해 매 요청마다 새 TCP 연결을 열었고, 연결이 폭증하며 임시 포트가 고갈되었습니다(Address not available).",
-          },
-          {
-            label: "해결",
-            text: "gateway는 실제로 스케일되지 않아 동적 재탐색이 필요 없었으므로, gateway에 고정 IP를 주고 정적 upstream과 keepalive로 전환해 연결을 재사용했습니다. 스케일되는 backend 경로만 별도 내부 로드밸런서로 분리했습니다.",
-          },
-          {
-            label: "결과",
-            text: "같은 1000 VU 조건에서 실패율이 24%에서 0.05%로 내려갔습니다(기능 확장 이전 구조 기준).",
-          },
-          {
-            label: "한계",
-            text: "현재 구조로 재측정하자 동적 resolver를 쓰는 backend 경로에서 같은 포트 고갈이 다시 발생했습니다. 해결이 새 약점을 남길 수 있다는 점을 확인했고 다음 개선 과제로 정리했습니다.",
-          },
+        featured: true,
+        headline: { label: "k6 1000 VU 요청 실패율", before: "24%", after: "0.05%" },
+        figure: "nginx",
+        chart: {
+          title: "재측정 A/B 결과 (backend 경로, 1000 VU)",
+          items: [
+            { label: "요청 실패율", before: 25.37, after: 0.04, beforeText: "25.37%", afterText: "0.04%" },
+            { label: "포트 고갈 에러|(건)", before: 15745, after: 0, beforeText: "15,745", afterText: "0" },
+            { label: "처리량|(req/s)", before: 647, after: 1624, beforeText: "647", afterText: "1,624" },
+            { label: "전체 HTTP p95", before: 2410, after: 715, beforeText: "2.41s", afterText: "715ms" },
+          ],
+        },
+        problem: [
+          { lead: "발견", text: "k6 1000 VU 부하테스트에서 요청의 24%가 실패했고, nginx 에러 로그에서 임시 포트 고갈(Address not available)을 확인했습니다." },
+          { lead: "원인", text: "변수를 쓰는 동적 proxy_pass는 upstream keepalive 풀을 쓸 수 없어, 요청마다 새 TCP 연결을 열었습니다." },
+          { lead: "해결 이유", text: "연결을 재사용하지 못하는 구조 자체가 원인이라, 트래픽이 늘면 반드시 다시 터질 문제였습니다." },
         ],
+        solution: [
+          { lead: "nginx → gateway", text: "gateway는 스케일하지 않는 단일 컨테이너라 재탐색이 필요 없어, 고정 IP + 정적 upstream + keepalive 64로 교체했습니다." },
+          { lead: "고려한 방법", text: "호스트명 기반 정적 upstream은 gateway가 꺼져 있으면 nginx가 host not found in upstream으로 기동하지 못했고(실제로 겪음) 컨테이너 재생성 시 IP 캐시 위험도 있어, 고정 IP를 택했습니다." },
+          { lead: "nginx → backend", text: "수평 확장되는 구간은 레플리카 변화를 따라가야 해서 server backend:8080 resolve + keepalive를 적용했습니다. 이 구간은 현재 구조 재측정에서 같은 증상이 재발해, 연결을 재사용한다는 같은 원리로 해결했습니다." },
+          { lead: "추가 발견", text: "backend를 3개로 늘렸는데 요청이 한 인스턴스로만 쏠려(30/0/0), 내부 로드밸런서를 추가해 9/10/11로 분산시켰습니다." },
+        ],
+        result: [
+          { lead: "1차", text: "gateway 구간: 같은 1000 VU 테스트에서 실패율 24% → 0.05% (기능 확장 이전 구조, 커밋 기록)" },
+          { lead: "2차", text: "backend 구간: 같은 조건 A/B에서 실패율 25.37% → 0.04%, 처리량 647 → 1,624 req/s, 전체 p95 2.41s → 715ms, backend 3개 분산 20 / 20 / 21 확인" },
+        ],
+        conditions:
+          "k6 1000 VU, 로그인→대기열→좌석 목록→예약→취소 반복, 대기열 기본값(500명/300ms), backend 1개, 좌석 336석 신규 공연(전·후 각각 다른 공연)으로 변경 전·후를 연달아 측정. Windows 노트북(AMD Ryzen AI 7 350 8코어/16스레드, RAM 32GB), Docker Desktop(16 CPU, 메모리 약 15GB), k6와 서버를 같은 PC에서 실행. 절대값보다 전후 비교용입니다.",
       },
       {
-        title: "좌석 동시성: 분산락과 낙관적 락의 이중 방어",
-        tag: "Redisson · @Version",
-        rows: [
-          {
-            label: "문제",
-            text: "같은 좌석을 여러 요청이 동시에 잡으면 중복 판매가 생길 수 있었습니다.",
-          },
-          {
-            label: "해결",
-            text: "좌석별 Redis 락(lock:seat:{seatId}) 안에서 AVAILABLE 확인 후 HOLD로 전이하고, 락을 못 잡으면 즉시 실패시켰습니다. 락은 트랜잭션 커밋 직전에 풀려 경합을 줄일 뿐 완전한 상호 배제가 아니라는 점을 알고, Seat에 @Version 낙관적 락을 두어 최종 정합성은 낙관적 락이 보증하게 했습니다.",
-          },
-          {
-            label: "분산 환경의 틈",
-            text: "홀드 성공 뒤 예약 저장이 실패하면 좌석이 HOLD로 남을 수 있어, event-service와 reservation-service가 각자 독립적으로 만료 스윕을 돌리는 자가 치유 구조로 만들고, 두 곳이 같은 좌석을 풀어도 문제없도록 해제를 멱등으로 처리했습니다.",
-          },
-          {
-            label: "결과",
-            text: "재측정(1000 VU)에서 좌석 충돌 2,374건이 모두 409로 정상 거절됐고, 확정 예약 수와 판매 좌석 수가 일치함을 확인했습니다.",
-          },
+        title: "홀드가 만료된 뒤 완료된 결제로 같은 좌석이 이중 판매될 수 있는 문제 해결",
+        tag: "결제 정합성 · 보상 처리",
+        featured: true,
+        headline: { label: "늦은 결제의 좌석 이중 판매", before: "가능", after: "차단" },
+        figure: "latePay",
+        problem: [
+          { lead: "발견", text: "결제 흐름을 코드로 따라가며 \"결제는 됐는데 좌석이 없는 경우가 있는가\"를 점검하다 찾았습니다." },
+          { lead: "원인", text: "pay()가 홀드 유효성을 보지 않고 예약 확정과 좌석 판매를 무조건 실행했습니다. 결제창이 열려 있는 동안 홀드가 만료되고 다른 사용자가 홀드하면, 늦은 결제가 그 좌석을 팔 수 있었습니다." },
+          { lead: "해결 이유", text: "결제 금액은 나갔는데 좌석이 중복되면 환불과 고객 대응으로 이어지는 금전 문제입니다." },
         ],
+        solution: [
+          { lead: "판매를 홀드에 묶음", text: "event-service의 sell이 좌석 락 안에서 그 홀드가 유효할 때만 판매하고(아니면 410 SEAT_HOLD_LOST), reservation-service는 HOLDING 예약만 확정합니다." },
+          { lead: "보상 순서", text: "order-service는 홀드 만료 응답을 받으면 쿠폰·포인트 복구 → PortOne 자동 환불 → 예약 취소 → 주문 실패 순으로 처리합니다." },
+          { lead: "선택 이유", text: "좌석이 아직 비어 있어도 홀드가 끝났으면 환불하는 엄격한 정책을 택해 경계 시점의 경합과 의미 모호성을 없앴습니다. 일시 장애는 환불하지 않고 같은 결제 id로 재시도하며, 판매 후 어느 홀드로 팔렸는지 남겨 반복 판매도 무해(멱등)하게 했습니다." },
+        ],
+        result: [
+          { text: "홀드가 끝난 뒤의 결제는 좌석을 팔지 못하고, 혜택 복구와 자동 환불로 이어집니다." },
+          { text: "판매 보호 6개, 예약 확정 4개, 결제 3개 등 통합 테스트 13개로 확인했습니다." },
+        ],
+        conditions:
+          "JUnit 통합 테스트(실제 MySQL·Redis 사용). PortOne은 모킹해 검증했고 실제 결제로는 확인하지 못했습니다. 부하테스트는 이 문제에 대해 따로 측정하지 않았습니다.",
       },
       {
-        title: "DB 유니크 제약이 만든 영구 재예약 불가",
-        tag: "DB 제약 · 책임 분리",
-        rows: [
-          {
-            label: "문제",
-            text: "reservation.seat_id에 DB unique가 걸려 있어, 한 번이라도 예약 행이 생기면(취소·만료 포함) 그 좌석을 다시 예약할 수 없었습니다. 예약과 취소를 반복하는 부하테스트에서 초기부터 있던 잠복 버그를 발견했습니다.",
-          },
-          {
-            label: "원인",
-            text: "좌석 점유의 동시성은 이미 event-service의 분산락과 상태 확인이 보장하고 있었고, 예약 테이블의 unique는 좌석은 평생 한 번만 예약된다는 의도하지 않은 의미를 만들고 있었습니다.",
-          },
-          {
-            label: "해결",
-            text: "유니크 제약을 제거하고 동시성 책임은 좌석 상태 전이(분산락과 @Version)에 두었습니다.",
-          },
-          {
-            label: "트레이드오프",
-            text: "DB 수준의 마지막 안전망 하나를 걷어낸 결정입니다. 활성 상태(HOLDING, CONFIRMED)의 예약만 유니크하게 하는 부분 유니크는 개선안으로 남겼습니다.",
-          },
+        title: "예약 API 지연: 트랜잭션이 원격 호출 동안 DB 연결을 점유하던 문제",
+        tag: "트랜잭션 범위 · 성능 분석",
+        featured: true,
+        headline: { label: "예약 API 평균 지연", before: "1.76s", after: "0.94s" },
+        chart: {
+          title: "예약 API 변경 전후 (300 VU, 워밍업 후 3회 평균)",
+          items: [
+            { label: "평균 지연", before: 1.76, after: 0.94, beforeText: "1.76s", afterText: "0.94s" },
+            { label: "p95 지연", before: 2.84, after: 2.01, beforeText: "2.84s", afterText: "2.01s" },
+            { label: "처리량|(건/초)", before: 37, after: 43, beforeText: "37", afterText: "43" },
+          ],
+        },
+        problem: [
+          { lead: "발견", text: "nginx 문제를 고친 뒤에도 예약 API p95가 2~3초였습니다." },
+          { lead: "가설 검증", text: "SQL 로깅 폭주는 끄고 재도 지연이 그대로였고, 커밋 fsync는 내구성 설정을 완화해도 개선이 작아 원인에서 제외했습니다. 좌석 296석 공연의 지연은 좌석 락 경합이라는 테스트 설계 문제였습니다." },
+          { lead: "원인", text: "reserve()와 cancel()이 클래스 전체 @Transactional이라 HTTP 호출 3번 동안 DB 연결을 잡고 있었고, hold()는 락 대기 중에도 연결을 점유했습니다. processlist에서 연결 10개가 모두 사용 중이며 상당수가 COMMIT 대기임을 확인했습니다." },
         ],
-      },
-      {
-        title: "결제 정합성: 서버 재검증과 보상 환불",
-        tag: "PortOne · 보상 처리",
-        rows: [
-          {
-            label: "문제",
-            text: "프론트는 결제창이 끝났다는 사실만 알려줄 뿐 성공 여부를 보증하지 않아, 조작된 요청으로 무료 결제 처리될 위험이 있었습니다.",
-          },
-          {
-            label: "해결",
-            text: "주문 소유와 상태를 확인한 뒤 PortOne 서버에서 결제를 다시 조회해 상태가 PAID이고 금액이 주문 금액과 같은지 검증했습니다. 이후 쿠폰과 포인트를 조건부 UPDATE로 차감하고, reservation-service 확정이 끝난 뒤에 로컬 주문을 PAID로 바꿨습니다.",
-          },
-          {
-            label: "보상",
-            text: "이미 할인가로 결제됐는데 쿠폰 또는 포인트 차감이 실패하면 PortOne 자동 환불, 예약 취소, 주문 FAILED 처리를 하고, 자동 환불마저 실패하면 로그로 수동 환불 대상으로 표시했습니다.",
-          },
-          {
-            label: "한계",
-            text: "아웃박스 패턴은 쓰지 않아, 원격 확정이 성공한 뒤 로컬 커밋이 실패하는 틈이 남아 있습니다. PortOne은 테스트 환경이라 실결제 승인 경로는 검증하지 못했고, 환불 계산과 보상 로직은 통합 테스트로 검증했습니다.",
-          },
+        solution: [
+          { lead: "트랜잭션 범위", text: "트랜잭션을 걷어내 DB 연결을 쓰는 순간에만 빌리게 하고, hold()는 락 → 짧은 트랜잭션 → 커밋 → 락 해제 순으로 바꿨습니다. 저장에 실패하면 좌석을 즉시 반납합니다." },
+          { lead: "단계별 타이밍 로그", text: "이어서 reservation 테이블에 인덱스가 없어 7만 행을 매번 스캔하던 것과, Kafka 발행이 요청 스레드를 1~3초 막던 것을 찾아 인덱스 추가와 비동기 발행으로 고쳤습니다." },
+          { lead: "측정 방법", text: "첫 결과가 흔들려, 설정마다 워밍업 1회를 버리고 3회를 측정하는 방식으로 바꿨습니다(재시작 직후 첫 실행은 항상 약 2배 느림)." },
         ],
+        result: [
+          { lead: "트랜잭션 수정만", text: "평균 지연 1.76s → 1.10s(약 37% 감소), 기본 풀 크기(10) 그대로" },
+          { lead: "인덱스·비동기 발행까지", text: "평균 1.76s → 0.94s(-47%), p95 2.84s → 2.01s(-29%), 처리량 37 → 43건/초" },
+          { lead: "남은 과제", text: "p95는 여전히 2초대로 임계값(1.5s)을 넘고, 남은 병목은 특정하지 못했습니다." },
+        ],
+        conditions:
+          "k6 300 VU, 좌석 2,710석 공연, 대기열 해제, 설정마다 워밍업 1회를 버리고 3회 평균. 같은 노트북에서 k6와 서버, 다른 프로젝트 컨테이너를 함께 돌렸고 호스트 CPU가 94~100%로 포화된 환경이라 상대 비교로만 읽어야 합니다.",
       },
     ],
   },

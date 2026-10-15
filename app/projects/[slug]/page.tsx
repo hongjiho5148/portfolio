@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProjectBySlug, projects } from "../data";
+import TroubleshootingCard from "../TroubleshootingCard";
 
 type ProjectDetailPageProps = {
   params: Promise<{
@@ -65,6 +66,28 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         </div>
       )}
 
+      {project.troubleshooting && project.troubleshooting.length > 0 && (
+        <section className="project-detail-section ts-block">
+          <h2>
+            트러블슈팅 <span className="ts-count">{project.troubleshooting.length}</span>
+          </h2>
+          <p className="ts-intro">문제를 어떻게 발견했고, 어떤 방법을 골랐고, 무엇이 좋아졌는지를 수치와 함께 정리했습니다.</p>
+          <nav className="ts-toc" aria-label="트러블슈팅 목차">
+            {project.troubleshooting.map((item, i) => (
+              <a key={item.title} href={`#ts-${i + 1}`}>
+                <span>{i + 1}</span>
+                {item.title}
+              </a>
+            ))}
+          </nav>
+          <div className="ts-list">
+            {project.troubleshooting.map((item, i) => (
+              <TroubleshootingCard key={item.title} item={item} index={i + 1} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="project-detail-section">
         <h2>프로젝트 개요</h2>
         <p className="project-detail-description">{project.description}</p>
@@ -110,30 +133,6 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           ))}
         </div>
       </section>
-
-      {project.troubleshooting && project.troubleshooting.length > 0 && (
-        <section className="project-detail-section">
-          <h2>트러블슈팅</h2>
-          <div className="troubleshooting-list">
-            {project.troubleshooting.map((item) => (
-              <article className="troubleshooting-card" key={item.title}>
-                <div className="troubleshooting-head">
-                  <span className="troubleshooting-tag">{item.tag}</span>
-                  <h3>{item.title}</h3>
-                </div>
-                <dl className="troubleshooting-rows">
-                  {item.rows.map((row) => (
-                    <div className="troubleshooting-row" key={row.label}>
-                      <dt>{row.label}</dt>
-                      <dd>{row.text}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="project-detail-section">
         <h2>관련 링크</h2>
