@@ -32,15 +32,6 @@ export default function Home() {
     },
   ];
 
-  const projectOrder = ["pickseat", "safepay-vault", "mate-platform", "convenience-dashboard"];
-  const featuredTroubleshooting = projects
-    .flatMap((project) =>
-      (project.troubleshooting ?? []).flatMap((item, index) =>
-        item.featured ? [{ project, item, anchor: index + 1 }] : [],
-      ),
-    )
-    .sort((x, y) => projectOrder.indexOf(x.project.slug) - projectOrder.indexOf(y.project.slug));
-
   return (
     <>
       <CursorGlow />
@@ -49,7 +40,6 @@ export default function Home() {
           <a href="#" className="brand">Hong Jiho</a>
           <nav className="nav-links">
             <a href="#introduce">Introduce</a>
-            <a href="#troubleshooting">Troubleshooting</a>
             <a href="#skill">Skill</a>
             <a href="#project">Project</a>
           </nav>
@@ -95,41 +85,6 @@ export default function Home() {
             <p>
               팀원들과의 원활한 소통과 화합을 바탕으로 함께 성장하는 개발을 지향합니다.
             </p>
-          </div>
-        </section>
-
-        {/* Troubleshooting Section */}
-        <section id="troubleshooting" className="section">
-          <div className="section-header">
-            <span className="section-label">Troubleshooting</span>
-            <h2 className="section-title">문제를 수치로 확인하고 해결한 경험</h2>
-          </div>
-          <p className="ts-home-lead">
-            부하테스트와 로그로 원인을 찾고, 같은 조건으로 다시 측정해 전후를 비교했습니다. 카드를 누르면 구조도, 테스트 조건과 함께 자세한 과정을 볼 수 있습니다.
-          </p>
-          <div className="ts-home-grid">
-            {featuredTroubleshooting.map(({ project, item, anchor }) => (
-              <Link
-                href={`/projects/${project.slug}#ts-${anchor}`}
-                prefetch={false}
-                className="ts-home-card"
-                key={`${project.slug}-${anchor}`}
-              >
-                <span className="ts-home-project">{project.title.split(" - ")[0].split(" × ")[0]}</span>
-                <h3>{item.title}</h3>
-                {item.headline && (
-                  <div className="ts-home-metric">
-                    <span className="ts-headline-label">{item.headline.label}</span>
-                    <span className="ts-headline-values">
-                      <span className="ts-before">{item.headline.before}</span>
-                      <span className="ts-arrow">→</span>
-                      <span className="ts-after">{item.headline.after}</span>
-                    </span>
-                  </div>
-                )}
-                <span className="project-more">자세히 보기 →</span>
-              </Link>
-            ))}
           </div>
         </section>
 

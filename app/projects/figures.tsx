@@ -87,8 +87,8 @@ export function SafepayLockFigure() {
     <marker id="a3g" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#0f6b3a"/></marker>
   </defs>
   <text x="0" y="14" fontSize="12.5" fontWeight="800">결제 상태 전이</text>
-  <rect x="0" y="22" width="92" height="30" rx="15" fill="#000"/><text x="46" y="42" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">발급</text>
-  <rect x="130" y="22" width="102" height="30" rx="15" fill="#000"/><text x="181" y="42" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">입금대기</text>
+  <rect x="0" y="22" width="92" height="30" rx="15" fill="#000"/><text x="46" y="42" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">입금대기</text>
+  <rect x="130" y="22" width="102" height="30" rx="15" fill="#000"/><text x="181" y="42" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">입금확인</text>
   <rect x="270" y="22" width="92" height="30" rx="15" fill="#000"/><text x="316" y="42" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">승인</text>
   <rect x="400" y="22" width="80" height="30" rx="15" fill="#fff" stroke="#111" strokeWidth="1.4"/><text x="440" y="42" textAnchor="middle" fontSize="12" fontWeight="700">취소</text>
   <rect x="496" y="22" width="80" height="30" rx="15" fill="#fff" stroke="#111" strokeWidth="1.4"/><text x="536" y="42" textAnchor="middle" fontSize="12" fontWeight="700">만료</text>
@@ -112,8 +112,8 @@ export function SafepayLockFigure() {
   <line x1="300" y1="214" x2="340" y2="214" stroke="#0f6b3a" strokeWidth="1.8" markerEnd="url(#a3g)"/>
 
   <text x="0" y="268" fontSize="12.5" fontWeight="800">락 적용 후에도 500이 나오던 예외 경로</text>
-  <rect x="0" y="276" width="288" height="44" rx="9" fill="#fff" stroke="#111" strokeWidth="1.3"/><text x="10" y="294" fontSize="11.5" fontWeight="800">유니크 제약 위반</text><text x="10" y="310" fontSize="11">DataIntegrityViolationException</text>
-  <rect x="304" y="276" width="288" height="44" rx="9" fill="#fff" stroke="#111" strokeWidth="1.3"/><text x="314" y="294" fontSize="11.5" fontWeight="800">DB 데드락</text><text x="314" y="310" fontSize="11">ConcurrencyFailureException → 모두 409로 매핑</text>
+  <rect x="0" y="276" width="288" height="44" rx="9" fill="#fff" stroke="#111" strokeWidth="1.3"/><text x="10" y="294" fontSize="11.5" fontWeight="800">유니크 제약 위반 (동시 승인 20개)</text><text x="10" y="310" fontSize="11">DataIntegrityViolationException</text>
+  <rect x="304" y="276" width="288" height="44" rx="9" fill="#fff" stroke="#111" strokeWidth="1.3"/><text x="314" y="294" fontSize="11.5" fontWeight="800">DB 데드락 (승인 vs 취소 경합)</text><text x="314" y="310" fontSize="11">ConcurrencyFailureException → 모두 409로 매핑</text>
     </svg>
   );
 }
